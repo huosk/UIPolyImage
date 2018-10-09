@@ -6,6 +6,25 @@ namespace UnityEngine.UI
 {
     public class UIPolyImage : Image
     {
+        public List<Vector2> poly
+        {
+            get
+            {
+                return m_Polygon;
+            }
+        }
+
+        public Bounds meshBounds
+        {
+            get
+            {
+                return m_MeshBounds;
+            }
+        }
+
+        private List<Vector2> m_Polygon = new List<Vector2>();
+        private Bounds m_MeshBounds;
+
         protected override void OnPopulateMesh(VertexHelper vh)
         {
             if (overrideSprite == null)
@@ -43,9 +62,14 @@ namespace UnityEngine.UI
             Matrix4x4 trsMT = Matrix4x4.TRS(pivotOffset, Quaternion.identity, scale);
 
             vh.Clear();
+            m_Polygon.Clear();
             for (int i = 0; i < sprite.vertices.Length; i++)
             {
-                vh.AddVert(trsMT.MultiplyPoint3x4(sprite.vertices[i]), color32, sprite.uv[i]);
+                Vector2 vert = trsMT.MultiplyPoint3x4(sprite.vertices[i]);
+                m_Polygon.Add(vert);
+                if (i == 0) m_MeshBounds = new Bounds(vert, Vector3.zero);
+                else m_MeshBounds.Encapsulate(vert);
+                vh.AddVert(vert, color32, sprite.uv[i]);
             }
 
             for (int i = 0; i < sprite.triangles.Length; i += 3)
